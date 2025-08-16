@@ -6,8 +6,8 @@ import httpx
 import pytest
 import pydantic
 
-from se_mcp_2 import SeMcp2, BaseModel, AsyncSeMcp2
-from se_mcp_2._response import (
+from streeteasy_mcp import BaseModel, StreeteasyMcp, AsyncStreeteasyMcp
+from streeteasy_mcp._response import (
     APIResponse,
     BaseAPIResponse,
     AsyncAPIResponse,
@@ -15,8 +15,8 @@ from se_mcp_2._response import (
     AsyncBinaryAPIResponse,
     extract_response_type,
 )
-from se_mcp_2._streaming import Stream
-from se_mcp_2._base_client import FinalRequestOptions
+from streeteasy_mcp._streaming import Stream
+from streeteasy_mcp._base_client import FinalRequestOptions
 
 
 class ConcreteBaseAPIResponse(APIResponse[bytes]): ...
@@ -37,7 +37,7 @@ def test_extract_response_type_direct_classes() -> None:
 def test_extract_response_type_direct_class_missing_type_arg() -> None:
     with pytest.raises(
         RuntimeError,
-        match="Expected type <class 'se_mcp_2._response.AsyncAPIResponse'> to have a type argument at index 0 but it did not",
+        match="Expected type <class 'streeteasy_mcp._response.AsyncAPIResponse'> to have a type argument at index 0 but it did not",
     ):
         extract_response_type(AsyncAPIResponse)
 
@@ -56,7 +56,7 @@ def test_extract_response_type_binary_response() -> None:
 class PydanticModel(pydantic.BaseModel): ...
 
 
-def test_response_parse_mismatched_basemodel(client: SeMcp2) -> None:
+def test_response_parse_mismatched_basemodel(client: StreeteasyMcp) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=client,
@@ -68,13 +68,13 @@ def test_response_parse_mismatched_basemodel(client: SeMcp2) -> None:
 
     with pytest.raises(
         TypeError,
-        match="Pydantic models must subclass our base model type, e.g. `from se_mcp_2 import BaseModel`",
+        match="Pydantic models must subclass our base model type, e.g. `from streeteasy_mcp import BaseModel`",
     ):
         response.parse(to=PydanticModel)
 
 
 @pytest.mark.asyncio
-async def test_async_response_parse_mismatched_basemodel(async_client: AsyncSeMcp2) -> None:
+async def test_async_response_parse_mismatched_basemodel(async_client: AsyncStreeteasyMcp) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=async_client,
@@ -86,12 +86,12 @@ async def test_async_response_parse_mismatched_basemodel(async_client: AsyncSeMc
 
     with pytest.raises(
         TypeError,
-        match="Pydantic models must subclass our base model type, e.g. `from se_mcp_2 import BaseModel`",
+        match="Pydantic models must subclass our base model type, e.g. `from streeteasy_mcp import BaseModel`",
     ):
         await response.parse(to=PydanticModel)
 
 
-def test_response_parse_custom_stream(client: SeMcp2) -> None:
+def test_response_parse_custom_stream(client: StreeteasyMcp) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=client,
@@ -106,7 +106,7 @@ def test_response_parse_custom_stream(client: SeMcp2) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_response_parse_custom_stream(async_client: AsyncSeMcp2) -> None:
+async def test_async_response_parse_custom_stream(async_client: AsyncStreeteasyMcp) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=b"foo"),
         client=async_client,
@@ -125,7 +125,7 @@ class CustomModel(BaseModel):
     bar: int
 
 
-def test_response_parse_custom_model(client: SeMcp2) -> None:
+def test_response_parse_custom_model(client: StreeteasyMcp) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
@@ -141,7 +141,7 @@ def test_response_parse_custom_model(client: SeMcp2) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_response_parse_custom_model(async_client: AsyncSeMcp2) -> None:
+async def test_async_response_parse_custom_model(async_client: AsyncStreeteasyMcp) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=async_client,
@@ -156,7 +156,7 @@ async def test_async_response_parse_custom_model(async_client: AsyncSeMcp2) -> N
     assert obj.bar == 2
 
 
-def test_response_parse_annotated_type(client: SeMcp2) -> None:
+def test_response_parse_annotated_type(client: StreeteasyMcp) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
@@ -173,7 +173,7 @@ def test_response_parse_annotated_type(client: SeMcp2) -> None:
     assert obj.bar == 2
 
 
-async def test_async_response_parse_annotated_type(async_client: AsyncSeMcp2) -> None:
+async def test_async_response_parse_annotated_type(async_client: AsyncStreeteasyMcp) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=async_client,
@@ -201,7 +201,7 @@ async def test_async_response_parse_annotated_type(async_client: AsyncSeMcp2) ->
         ("FalSe", False),
     ],
 )
-def test_response_parse_bool(client: SeMcp2, content: str, expected: bool) -> None:
+def test_response_parse_bool(client: StreeteasyMcp, content: str, expected: bool) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=content),
         client=client,
@@ -226,7 +226,7 @@ def test_response_parse_bool(client: SeMcp2, content: str, expected: bool) -> No
         ("FalSe", False),
     ],
 )
-async def test_async_response_parse_bool(client: AsyncSeMcp2, content: str, expected: bool) -> None:
+async def test_async_response_parse_bool(client: AsyncStreeteasyMcp, content: str, expected: bool) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=content),
         client=client,
@@ -245,7 +245,7 @@ class OtherModel(BaseModel):
 
 
 @pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
-def test_response_parse_expect_model_union_non_json_content(client: SeMcp2) -> None:
+def test_response_parse_expect_model_union_non_json_content(client: StreeteasyMcp) -> None:
     response = APIResponse(
         raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=client,
@@ -262,7 +262,7 @@ def test_response_parse_expect_model_union_non_json_content(client: SeMcp2) -> N
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("async_client", [False], indirect=True)  # loose validation
-async def test_async_response_parse_expect_model_union_non_json_content(async_client: AsyncSeMcp2) -> None:
+async def test_async_response_parse_expect_model_union_non_json_content(async_client: AsyncStreeteasyMcp) -> None:
     response = AsyncAPIResponse(
         raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=async_client,

@@ -18,11 +18,11 @@ __all__ = [
 ]
 
 
-class SeMcp2Error(Exception):
+class StreeteasyMcpError(Exception):
     pass
 
 
-class APIError(SeMcp2Error):
+class APIError(StreeteasyMcpError):
     message: str
     request: httpx.Request
 

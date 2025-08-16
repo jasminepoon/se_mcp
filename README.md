@@ -1,9 +1,9 @@
-# Se Mcp 2 Python API library
+# Streeteasy Mcp Python API library
 
 <!-- prettier-ignore -->
-[![PyPI version](https://img.shields.io/pypi/v/se_mcp_2.svg?label=pypi%20(stable))](https://pypi.org/project/se_mcp_2/)
+[![PyPI version](https://img.shields.io/pypi/v/streeteasy_mcp.svg?label=pypi%20(stable))](https://pypi.org/project/streeteasy_mcp/)
 
-The Se Mcp 2 Python library provides convenient access to the Se Mcp 2 REST API from any Python 3.8+
+The Streeteasy Mcp Python library provides convenient access to the Streeteasy Mcp REST API from any Python 3.8+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -21,7 +21,7 @@ pip install git+ssh://git@github.com/stainless-sdks/se-mcp-2-python.git
 ```
 
 > [!NOTE]
-> Once this package is [published to PyPI](https://www.stainless.com/docs/guides/publish), this will become: `pip install se_mcp_2`
+> Once this package is [published to PyPI](https://www.stainless.com/docs/guides/publish), this will become: `pip install streeteasy_mcp`
 
 ## Usage
 
@@ -29,40 +29,52 @@ The full API of this library can be found in [api.md](api.md).
 
 ```python
 import os
-from se_mcp_2 import SeMcp2
+from streeteasy_mcp import StreeteasyMcp
 
-client = SeMcp2(
-    api_key=os.environ.get("SE_MCP_2_API_KEY"),  # This is the default and can be omitted
+client = StreeteasyMcp(
+    rapidapi_key=os.environ.get("RAPIDAPI_KEY"),  # This is the default and can be omitted
 )
 
 response = client.rentals.search(
-    areas="REPLACE_ME",
+    areas="all-downtown,all-midtown",
+    limit=5,
+    max_beds=2,
+    max_price=3500,
+    min_beds=1,
+    min_price=2500,
+    no_fee=True,
 )
 print(response.listings)
 ```
 
-While you can provide an `api_key` keyword argument,
+While you can provide a `rapidapi_key` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
-to add `SE_MCP_2_API_KEY="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+to add `RAPIDAPI_KEY="My Rapidapi Key"` to your `.env` file
+so that your Rapidapi Key is not stored in source control.
 
 ## Async usage
 
-Simply import `AsyncSeMcp2` instead of `SeMcp2` and use `await` with each API call:
+Simply import `AsyncStreeteasyMcp` instead of `StreeteasyMcp` and use `await` with each API call:
 
 ```python
 import os
 import asyncio
-from se_mcp_2 import AsyncSeMcp2
+from streeteasy_mcp import AsyncStreeteasyMcp
 
-client = AsyncSeMcp2(
-    api_key=os.environ.get("SE_MCP_2_API_KEY"),  # This is the default and can be omitted
+client = AsyncStreeteasyMcp(
+    rapidapi_key=os.environ.get("RAPIDAPI_KEY"),  # This is the default and can be omitted
 )
 
 
 async def main() -> None:
     response = await client.rentals.search(
-        areas="REPLACE_ME",
+        areas="all-downtown,all-midtown",
+        limit=5,
+        max_beds=2,
+        max_price=3500,
+        min_beds=1,
+        min_price=2500,
+        no_fee=True,
     )
     print(response.listings)
 
@@ -80,24 +92,30 @@ You can enable this by installing `aiohttp`:
 
 ```sh
 # install from this staging repo
-pip install 'se_mcp_2[aiohttp] @ git+ssh://git@github.com/stainless-sdks/se-mcp-2-python.git'
+pip install 'streeteasy_mcp[aiohttp] @ git+ssh://git@github.com/stainless-sdks/se-mcp-2-python.git'
 ```
 
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
 
 ```python
 import asyncio
-from se_mcp_2 import DefaultAioHttpClient
-from se_mcp_2 import AsyncSeMcp2
+from streeteasy_mcp import DefaultAioHttpClient
+from streeteasy_mcp import AsyncStreeteasyMcp
 
 
 async def main() -> None:
-    async with AsyncSeMcp2(
-        api_key="My API Key",
+    async with AsyncStreeteasyMcp(
+        rapidapi_key="My Rapidapi Key",
         http_client=DefaultAioHttpClient(),
     ) as client:
         response = await client.rentals.search(
-            areas="REPLACE_ME",
+            areas="all-downtown,all-midtown",
+            limit=5,
+            max_beds=2,
+            max_price=3500,
+            min_beds=1,
+            min_price=2500,
+            no_fee=True,
         )
         print(response.listings)
 
@@ -116,29 +134,33 @@ Typed requests and responses provide autocomplete and documentation within your 
 
 ## Handling errors
 
-When the library is unable to connect to the API (for example, due to network connection problems or a timeout), a subclass of `se_mcp_2.APIConnectionError` is raised.
+When the library is unable to connect to the API (for example, due to network connection problems or a timeout), a subclass of `streeteasy_mcp.APIConnectionError` is raised.
 
 When the API returns a non-success status code (that is, 4xx or 5xx
-response), a subclass of `se_mcp_2.APIStatusError` is raised, containing `status_code` and `response` properties.
+response), a subclass of `streeteasy_mcp.APIStatusError` is raised, containing `status_code` and `response` properties.
 
-All errors inherit from `se_mcp_2.APIError`.
+All errors inherit from `streeteasy_mcp.APIError`.
 
 ```python
-import se_mcp_2
-from se_mcp_2 import SeMcp2
+import streeteasy_mcp
+from streeteasy_mcp import StreeteasyMcp
 
-client = SeMcp2()
+client = StreeteasyMcp()
 
 try:
     client.rentals.search(
-        areas="REPLACE_ME",
+        areas="greenwich-village",
+        limit=10,
+        max_price=4000,
+        min_beds=1,
+        min_price=2000,
     )
-except se_mcp_2.APIConnectionError as e:
+except streeteasy_mcp.APIConnectionError as e:
     print("The server could not be reached")
     print(e.__cause__)  # an underlying Exception, likely raised within httpx.
-except se_mcp_2.RateLimitError as e:
+except streeteasy_mcp.RateLimitError as e:
     print("A 429 status code was received; we should back off a bit.")
-except se_mcp_2.APIStatusError as e:
+except streeteasy_mcp.APIStatusError as e:
     print("Another non-200-range status code was received")
     print(e.status_code)
     print(e.response)
@@ -166,17 +188,21 @@ Connection errors (for example, due to a network connectivity problem), 408 Requ
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
-from se_mcp_2 import SeMcp2
+from streeteasy_mcp import StreeteasyMcp
 
 # Configure the default for all requests:
-client = SeMcp2(
+client = StreeteasyMcp(
     # default is 2
     max_retries=0,
 )
 
 # Or, configure per-request:
 client.with_options(max_retries=5).rentals.search(
-    areas="REPLACE_ME",
+    areas="greenwich-village",
+    limit=10,
+    max_price=4000,
+    min_beds=1,
+    min_price=2000,
 )
 ```
 
@@ -186,22 +212,26 @@ By default requests time out after 1 minute. You can configure this with a `time
 which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:
 
 ```python
-from se_mcp_2 import SeMcp2
+from streeteasy_mcp import StreeteasyMcp
 
 # Configure the default for all requests:
-client = SeMcp2(
+client = StreeteasyMcp(
     # 20 seconds (default is 1 minute)
     timeout=20.0,
 )
 
 # More granular control:
-client = SeMcp2(
+client = StreeteasyMcp(
     timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
 )
 
 # Override per-request:
 client.with_options(timeout=5.0).rentals.search(
-    areas="REPLACE_ME",
+    areas="greenwich-village",
+    limit=10,
+    max_price=4000,
+    min_beds=1,
+    min_price=2000,
 )
 ```
 
@@ -215,10 +245,10 @@ Note that requests that time out are [retried twice by default](#retries).
 
 We use the standard library [`logging`](https://docs.python.org/3/library/logging.html) module.
 
-You can enable logging by setting the environment variable `SE_MCP_2_LOG` to `info`.
+You can enable logging by setting the environment variable `STREETEASY_MCP_LOG` to `info`.
 
 ```shell
-$ export SE_MCP_2_LOG=info
+$ export STREETEASY_MCP_LOG=info
 ```
 
 Or to `debug` for more verbose logging.
@@ -240,11 +270,15 @@ if response.my_field is None:
 The "raw" Response object can be accessed by prefixing `.with_raw_response.` to any HTTP method call, e.g.,
 
 ```py
-from se_mcp_2 import SeMcp2
+from streeteasy_mcp import StreeteasyMcp
 
-client = SeMcp2()
+client = StreeteasyMcp()
 response = client.rentals.with_raw_response.search(
-    areas="REPLACE_ME",
+    areas="greenwich-village",
+    limit=10,
+    max_price=4000,
+    min_beds=1,
+    min_price=2000,
 )
 print(response.headers.get('X-My-Header'))
 
@@ -252,9 +286,9 @@ rental = response.parse()  # get the object that `rentals.search()` would have r
 print(rental.listings)
 ```
 
-These methods return an [`APIResponse`](https://github.com/stainless-sdks/se-mcp-2-python/tree/main/src/se_mcp_2/_response.py) object.
+These methods return an [`APIResponse`](https://github.com/stainless-sdks/se-mcp-2-python/tree/main/src/streeteasy_mcp/_response.py) object.
 
-The async client returns an [`AsyncAPIResponse`](https://github.com/stainless-sdks/se-mcp-2-python/tree/main/src/se_mcp_2/_response.py) with the same structure, the only difference being `await`able methods for reading the response content.
+The async client returns an [`AsyncAPIResponse`](https://github.com/stainless-sdks/se-mcp-2-python/tree/main/src/streeteasy_mcp/_response.py) with the same structure, the only difference being `await`able methods for reading the response content.
 
 #### `.with_streaming_response`
 
@@ -264,7 +298,11 @@ To stream the response body, use `.with_streaming_response` instead, which requi
 
 ```python
 with client.rentals.with_streaming_response.search(
-    areas="REPLACE_ME",
+    areas="greenwich-village",
+    limit=10,
+    max_price=4000,
+    min_beds=1,
+    min_price=2000,
 ) as response:
     print(response.headers.get("X-My-Header"))
 
@@ -318,10 +356,10 @@ You can directly override the [httpx client](https://www.python-httpx.org/api/#c
 
 ```python
 import httpx
-from se_mcp_2 import SeMcp2, DefaultHttpxClient
+from streeteasy_mcp import StreeteasyMcp, DefaultHttpxClient
 
-client = SeMcp2(
-    # Or use the `SE_MCP_2_BASE_URL` env var
+client = StreeteasyMcp(
+    # Or use the `STREETEASY_MCP_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",
@@ -341,9 +379,9 @@ client.with_options(http_client=DefaultHttpxClient(...))
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
 
 ```py
-from se_mcp_2 import SeMcp2
+from streeteasy_mcp import StreeteasyMcp
 
-with SeMcp2() as client:
+with StreeteasyMcp() as client:
   # make requests here
   ...
 
@@ -369,8 +407,8 @@ If you've upgraded to the latest version but aren't seeing any new features you 
 You can determine the version that is being used at runtime with:
 
 ```py
-import se_mcp_2
-print(se_mcp_2.__version__)
+import streeteasy_mcp
+print(streeteasy_mcp.__version__)
 ```
 
 ## Requirements

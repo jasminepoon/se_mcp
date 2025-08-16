@@ -4,8 +4,8 @@ from typing import Sequence
 
 import pytest
 
-from se_mcp_2._types import FileTypes
-from se_mcp_2._utils import extract_files
+from streeteasy_mcp._types import FileTypes
+from streeteasy_mcp._utils import extract_files
 
 
 def test_removes_files_from_input() -> None:

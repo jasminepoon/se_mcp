@@ -2,7 +2,7 @@ import operator
 from typing import Any
 from typing_extensions import override
 
-from se_mcp_2._utils import LazyProxy
+from streeteasy_mcp._utils import LazyProxy
 
 
 class RecursiveLazyProxy(LazyProxy[Any]):
