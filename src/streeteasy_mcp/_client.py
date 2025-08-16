@@ -23,30 +23,39 @@ from ._utils import is_given, get_async_library
 from ._version import __version__
 from .resources import rentals
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import SeMcp2Error, APIStatusError
+from ._exceptions import APIStatusError, StreeteasyMcpError
 from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
     AsyncAPIClient,
 )
 
-__all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "SeMcp2", "AsyncSeMcp2", "Client", "AsyncClient"]
+__all__ = [
+    "Timeout",
+    "Transport",
+    "ProxiesTypes",
+    "RequestOptions",
+    "StreeteasyMcp",
+    "AsyncStreeteasyMcp",
+    "Client",
+    "AsyncClient",
+]
 
 
-class SeMcp2(SyncAPIClient):
+class StreeteasyMcp(SyncAPIClient):
     rentals: rentals.RentalsResource
-    with_raw_response: SeMcp2WithRawResponse
-    with_streaming_response: SeMcp2WithStreamedResponse
+    with_raw_response: StreeteasyMcpWithRawResponse
+    with_streaming_response: StreeteasyMcpWithStreamedResponse
 
     # client options
-    api_key: str
-    api_host: str
+    rapidapi_key: str
+    rapidapi_host: str
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
-        api_host: str | None = None,
+        rapidapi_key: str | None = None,
+        rapidapi_host: str | None = "streeteasy-api.p.rapidapi.com",
         base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -66,30 +75,24 @@ class SeMcp2(SyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new synchronous SeMcp2 client instance.
+        """Construct a new synchronous StreeteasyMcp client instance.
 
-        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
-        - `api_key` from `SE_MCP_2_API_KEY`
-        - `api_host` from `SE_MCP_2_API_HOST`
+        This automatically infers the `rapidapi_key` argument from the `RAPIDAPI_KEY` environment variable if it is not provided.
         """
-        if api_key is None:
-            api_key = os.environ.get("SE_MCP_2_API_KEY")
-        if api_key is None:
-            raise SeMcp2Error(
-                "The api_key client option must be set either by passing api_key to the client or by setting the SE_MCP_2_API_KEY environment variable"
+        if rapidapi_key is None:
+            rapidapi_key = os.environ.get("RAPIDAPI_KEY")
+        if rapidapi_key is None:
+            raise StreeteasyMcpError(
+                "The rapidapi_key client option must be set either by passing rapidapi_key to the client or by setting the RAPIDAPI_KEY environment variable"
             )
-        self.api_key = api_key
+        self.rapidapi_key = rapidapi_key
 
-        if api_host is None:
-            api_host = os.environ.get("SE_MCP_2_API_HOST")
-        if api_host is None:
-            raise SeMcp2Error(
-                "The api_host client option must be set either by passing api_host to the client or by setting the SE_MCP_2_API_HOST environment variable"
-            )
-        self.api_host = api_host
+        if rapidapi_host is None:
+            rapidapi_host = "streeteasy-api.p.rapidapi.com"
+        self.rapidapi_host = rapidapi_host
 
         if base_url is None:
-            base_url = os.environ.get("SE_MCP_2_BASE_URL")
+            base_url = os.environ.get("STREETEASY_MCP_BASE_URL")
         if base_url is None:
             base_url = f"https://streeteasy-api.p.rapidapi.com"
 
@@ -105,8 +108,8 @@ class SeMcp2(SyncAPIClient):
         )
 
         self.rentals = rentals.RentalsResource(self)
-        self.with_raw_response = SeMcp2WithRawResponse(self)
-        self.with_streaming_response = SeMcp2WithStreamedResponse(self)
+        self.with_raw_response = StreeteasyMcpWithRawResponse(self)
+        self.with_streaming_response = StreeteasyMcpWithStreamedResponse(self)
 
     @property
     @override
@@ -120,13 +123,13 @@ class SeMcp2(SyncAPIClient):
 
     @property
     def _rapidapi(self) -> dict[str, str]:
-        api_key = self.api_key
-        return {"X-RapidAPI-Key": api_key}
+        rapidapi_key = self.rapidapi_key
+        return {"X-RapidAPI-Key": rapidapi_key}
 
     @property
     def _rapidapi_host(self) -> dict[str, str]:
-        api_host = self.api_host
-        return {"X-RapidAPI-Host": api_host}
+        rapidapi_host = self.rapidapi_host
+        return {"X-RapidAPI-Host": rapidapi_host}
 
     @property
     @override
@@ -140,8 +143,8 @@ class SeMcp2(SyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
-        api_host: str | None = None,
+        rapidapi_key: str | None = None,
+        rapidapi_host: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.Client | None = None,
@@ -175,8 +178,8 @@ class SeMcp2(SyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
-            api_host=api_host or self.api_host,
+            rapidapi_key=rapidapi_key or self.rapidapi_key,
+            rapidapi_host=rapidapi_host or self.rapidapi_host,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
@@ -224,20 +227,20 @@ class SeMcp2(SyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class AsyncSeMcp2(AsyncAPIClient):
+class AsyncStreeteasyMcp(AsyncAPIClient):
     rentals: rentals.AsyncRentalsResource
-    with_raw_response: AsyncSeMcp2WithRawResponse
-    with_streaming_response: AsyncSeMcp2WithStreamedResponse
+    with_raw_response: AsyncStreeteasyMcpWithRawResponse
+    with_streaming_response: AsyncStreeteasyMcpWithStreamedResponse
 
     # client options
-    api_key: str
-    api_host: str
+    rapidapi_key: str
+    rapidapi_host: str
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
-        api_host: str | None = None,
+        rapidapi_key: str | None = None,
+        rapidapi_host: str | None = "streeteasy-api.p.rapidapi.com",
         base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -257,30 +260,24 @@ class AsyncSeMcp2(AsyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
     ) -> None:
-        """Construct a new async AsyncSeMcp2 client instance.
+        """Construct a new async AsyncStreeteasyMcp client instance.
 
-        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
-        - `api_key` from `SE_MCP_2_API_KEY`
-        - `api_host` from `SE_MCP_2_API_HOST`
+        This automatically infers the `rapidapi_key` argument from the `RAPIDAPI_KEY` environment variable if it is not provided.
         """
-        if api_key is None:
-            api_key = os.environ.get("SE_MCP_2_API_KEY")
-        if api_key is None:
-            raise SeMcp2Error(
-                "The api_key client option must be set either by passing api_key to the client or by setting the SE_MCP_2_API_KEY environment variable"
+        if rapidapi_key is None:
+            rapidapi_key = os.environ.get("RAPIDAPI_KEY")
+        if rapidapi_key is None:
+            raise StreeteasyMcpError(
+                "The rapidapi_key client option must be set either by passing rapidapi_key to the client or by setting the RAPIDAPI_KEY environment variable"
             )
-        self.api_key = api_key
+        self.rapidapi_key = rapidapi_key
 
-        if api_host is None:
-            api_host = os.environ.get("SE_MCP_2_API_HOST")
-        if api_host is None:
-            raise SeMcp2Error(
-                "The api_host client option must be set either by passing api_host to the client or by setting the SE_MCP_2_API_HOST environment variable"
-            )
-        self.api_host = api_host
+        if rapidapi_host is None:
+            rapidapi_host = "streeteasy-api.p.rapidapi.com"
+        self.rapidapi_host = rapidapi_host
 
         if base_url is None:
-            base_url = os.environ.get("SE_MCP_2_BASE_URL")
+            base_url = os.environ.get("STREETEASY_MCP_BASE_URL")
         if base_url is None:
             base_url = f"https://streeteasy-api.p.rapidapi.com"
 
@@ -296,8 +293,8 @@ class AsyncSeMcp2(AsyncAPIClient):
         )
 
         self.rentals = rentals.AsyncRentalsResource(self)
-        self.with_raw_response = AsyncSeMcp2WithRawResponse(self)
-        self.with_streaming_response = AsyncSeMcp2WithStreamedResponse(self)
+        self.with_raw_response = AsyncStreeteasyMcpWithRawResponse(self)
+        self.with_streaming_response = AsyncStreeteasyMcpWithStreamedResponse(self)
 
     @property
     @override
@@ -311,13 +308,13 @@ class AsyncSeMcp2(AsyncAPIClient):
 
     @property
     def _rapidapi(self) -> dict[str, str]:
-        api_key = self.api_key
-        return {"X-RapidAPI-Key": api_key}
+        rapidapi_key = self.rapidapi_key
+        return {"X-RapidAPI-Key": rapidapi_key}
 
     @property
     def _rapidapi_host(self) -> dict[str, str]:
-        api_host = self.api_host
-        return {"X-RapidAPI-Host": api_host}
+        rapidapi_host = self.rapidapi_host
+        return {"X-RapidAPI-Host": rapidapi_host}
 
     @property
     @override
@@ -331,8 +328,8 @@ class AsyncSeMcp2(AsyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
-        api_host: str | None = None,
+        rapidapi_key: str | None = None,
+        rapidapi_host: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.AsyncClient | None = None,
@@ -366,8 +363,8 @@ class AsyncSeMcp2(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
-            api_host=api_host or self.api_host,
+            rapidapi_key=rapidapi_key or self.rapidapi_key,
+            rapidapi_host=rapidapi_host or self.rapidapi_host,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
@@ -415,26 +412,26 @@ class AsyncSeMcp2(AsyncAPIClient):
         return APIStatusError(err_msg, response=response, body=body)
 
 
-class SeMcp2WithRawResponse:
-    def __init__(self, client: SeMcp2) -> None:
+class StreeteasyMcpWithRawResponse:
+    def __init__(self, client: StreeteasyMcp) -> None:
         self.rentals = rentals.RentalsResourceWithRawResponse(client.rentals)
 
 
-class AsyncSeMcp2WithRawResponse:
-    def __init__(self, client: AsyncSeMcp2) -> None:
+class AsyncStreeteasyMcpWithRawResponse:
+    def __init__(self, client: AsyncStreeteasyMcp) -> None:
         self.rentals = rentals.AsyncRentalsResourceWithRawResponse(client.rentals)
 
 
-class SeMcp2WithStreamedResponse:
-    def __init__(self, client: SeMcp2) -> None:
+class StreeteasyMcpWithStreamedResponse:
+    def __init__(self, client: StreeteasyMcp) -> None:
         self.rentals = rentals.RentalsResourceWithStreamingResponse(client.rentals)
 
 
-class AsyncSeMcp2WithStreamedResponse:
-    def __init__(self, client: AsyncSeMcp2) -> None:
+class AsyncStreeteasyMcpWithStreamedResponse:
+    def __init__(self, client: AsyncStreeteasyMcp) -> None:
         self.rentals = rentals.AsyncRentalsResourceWithStreamingResponse(client.rentals)
 
 
-Client = SeMcp2
+Client = StreeteasyMcp
 
-AsyncClient = AsyncSeMcp2
+AsyncClient = AsyncStreeteasyMcp

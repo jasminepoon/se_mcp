@@ -81,7 +81,7 @@ HttpxRequestFiles = Union[Mapping[str, HttpxFileTypes], Sequence[Tuple[str, Http
 # This unfortunately means that you will either have
 # to import this type and pass it explicitly:
 #
-# from se_mcp_2 import NoneType
+# from streeteasy_mcp import NoneType
 # client.get('/foo', cast_to=NoneType)
 #
 # or build it yourself:

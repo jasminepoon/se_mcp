@@ -8,15 +8,15 @@ from typing_extensions import Required, Annotated, TypedDict
 
 import pytest
 
-from se_mcp_2._types import NOT_GIVEN, Base64FileInput
-from se_mcp_2._utils import (
+from streeteasy_mcp._types import NOT_GIVEN, Base64FileInput
+from streeteasy_mcp._utils import (
     PropertyInfo,
     transform as _transform,
     parse_datetime,
     async_transform as _async_transform,
 )
-from se_mcp_2._compat import PYDANTIC_V2
-from se_mcp_2._models import BaseModel
+from streeteasy_mcp._compat import PYDANTIC_V2
+from streeteasy_mcp._models import BaseModel
 
 _T = TypeVar("_T")
 

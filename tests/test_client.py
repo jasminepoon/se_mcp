@@ -21,11 +21,11 @@ import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from se_mcp_2 import SeMcp2, AsyncSeMcp2, APIResponseValidationError
-from se_mcp_2._types import Omit
-from se_mcp_2._models import BaseModel, FinalRequestOptions
-from se_mcp_2._exceptions import SeMcp2Error, APIStatusError, APITimeoutError, APIResponseValidationError
-from se_mcp_2._base_client import (
+from streeteasy_mcp import StreeteasyMcp, AsyncStreeteasyMcp, APIResponseValidationError
+from streeteasy_mcp._types import Omit
+from streeteasy_mcp._models import BaseModel, FinalRequestOptions
+from streeteasy_mcp._exceptions import APIStatusError, APITimeoutError, StreeteasyMcpError, APIResponseValidationError
+from streeteasy_mcp._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
     BaseClient,
@@ -37,8 +37,7 @@ from se_mcp_2._base_client import (
 from .utils import update_env
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
-api_host = "My API Host"
+rapidapi_key = "My Rapidapi Key"
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -51,7 +50,7 @@ def _low_retry_timeout(*_args: Any, **_kwargs: Any) -> float:
     return 0.1
 
 
-def _get_open_connections(client: SeMcp2 | AsyncSeMcp2) -> int:
+def _get_open_connections(client: StreeteasyMcp | AsyncStreeteasyMcp) -> int:
     transport = client._client._transport
     assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
 
@@ -59,8 +58,8 @@ def _get_open_connections(client: SeMcp2 | AsyncSeMcp2) -> int:
     return len(pool._requests)
 
 
-class TestSeMcp2:
-    client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+class TestStreeteasyMcp:
+    client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
 
     @pytest.mark.respx(base_url=base_url)
     def test_raw_response(self, respx_mock: MockRouter) -> None:
@@ -86,13 +85,9 @@ class TestSeMcp2:
         copied = self.client.copy()
         assert id(copied) != id(self.client)
 
-        copied = self.client.copy(api_key="another My API Key")
-        assert copied.api_key == "another My API Key"
-        assert self.client.api_key == "My API Key"
-
-        copied = self.client.copy(api_host="another My API Host")
-        assert copied.api_host == "another My API Host"
-        assert self.client.api_host == "My API Host"
+        copied = self.client.copy(rapidapi_key="another My Rapidapi Key")
+        assert copied.rapidapi_key == "another My Rapidapi Key"
+        assert self.client.rapidapi_key == "My Rapidapi Key"
 
     def test_copy_default_options(self) -> None:
         # options that have a default are overridden correctly
@@ -111,10 +106,9 @@ class TestSeMcp2:
         assert isinstance(self.client.timeout, httpx.Timeout)
 
     def test_copy_default_headers(self) -> None:
-        client = SeMcp2(
+        client = StreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_headers={"X-Foo": "bar"},
         )
@@ -149,12 +143,8 @@ class TestSeMcp2:
             client.copy(set_default_headers={}, default_headers={"X-Foo": "Bar"})
 
     def test_copy_default_query(self) -> None:
-        client = SeMcp2(
-            base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
-            _strict_response_validation=True,
-            default_query={"foo": "bar"},
+        client = StreeteasyMcp(
+            base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, default_query={"foo": "bar"}
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -245,10 +235,10 @@ class TestSeMcp2:
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
                         #
                         # removing the decorator fixes the leak for reasons we don't understand.
-                        "se_mcp_2/_legacy_response.py",
-                        "se_mcp_2/_response.py",
+                        "streeteasy_mcp/_legacy_response.py",
+                        "streeteasy_mcp/_response.py",
                         # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
-                        "se_mcp_2/_compat.py",
+                        "streeteasy_mcp/_compat.py",
                         # Standard library leaks we don't care about.
                         "/logging/__init__.py",
                     ]
@@ -279,12 +269,8 @@ class TestSeMcp2:
         assert timeout == httpx.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
-        client = SeMcp2(
-            base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
-            _strict_response_validation=True,
-            timeout=httpx.Timeout(0),
+        client = StreeteasyMcp(
+            base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -294,12 +280,8 @@ class TestSeMcp2:
     def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         with httpx.Client(timeout=None) as http_client:
-            client = SeMcp2(
-                base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
-                _strict_response_validation=True,
-                http_client=http_client,
+            client = StreeteasyMcp(
+                base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -308,12 +290,8 @@ class TestSeMcp2:
 
         # no timeout given to the httpx client should not use the httpx default
         with httpx.Client() as http_client:
-            client = SeMcp2(
-                base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
-                _strict_response_validation=True,
-                http_client=http_client,
+            client = StreeteasyMcp(
+                base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -322,12 +300,8 @@ class TestSeMcp2:
 
         # explicitly passing the default timeout currently results in it being ignored
         with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = SeMcp2(
-                base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
-                _strict_response_validation=True,
-                http_client=http_client,
+            client = StreeteasyMcp(
+                base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -337,19 +311,17 @@ class TestSeMcp2:
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             async with httpx.AsyncClient() as http_client:
-                SeMcp2(
+                StreeteasyMcp(
                     base_url=base_url,
-                    api_key=api_key,
-                    api_host=api_host,
+                    rapidapi_key=rapidapi_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     def test_default_headers_option(self) -> None:
-        client = SeMcp2(
+        client = StreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_headers={"X-Foo": "bar"},
         )
@@ -357,10 +329,9 @@ class TestSeMcp2:
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        client2 = SeMcp2(
+        client2 = StreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -372,20 +343,19 @@ class TestSeMcp2:
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
     def test_validate_headers(self) -> None:
-        client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("X-RapidAPI-Key") == api_key
+        assert request.headers.get("X-RapidAPI-Key") == rapidapi_key
 
-        with pytest.raises(SeMcp2Error):
-            with update_env(**{"SE_MCP_2_API_KEY": Omit()}):
-                client2 = SeMcp2(base_url=base_url, api_key=None, api_host=api_host, _strict_response_validation=True)
+        with pytest.raises(StreeteasyMcpError):
+            with update_env(**{"RAPIDAPI_KEY": Omit()}):
+                client2 = StreeteasyMcp(base_url=base_url, rapidapi_key=None, _strict_response_validation=True)
             _ = client2
 
     def test_default_query_option(self) -> None:
-        client = SeMcp2(
+        client = StreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_query={"query_param": "bar"},
         )
@@ -500,7 +470,7 @@ class TestSeMcp2:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, client: SeMcp2) -> None:
+    def test_multipart_repeating_array(self, client: StreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions.construct(
                 method="post",
@@ -587,11 +557,8 @@ class TestSeMcp2:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = SeMcp2(
-            base_url="https://example.com/from_init",
-            api_key=api_key,
-            api_host=api_host,
-            _strict_response_validation=True,
+        client = StreeteasyMcp(
+            base_url="https://example.com/from_init", rapidapi_key=rapidapi_key, _strict_response_validation=True
         )
         assert client.base_url == "https://example.com/from_init/"
 
@@ -600,30 +567,28 @@ class TestSeMcp2:
         assert client.base_url == "https://example.com/from_setter/"
 
     def test_base_url_env(self) -> None:
-        with update_env(SE_MCP_2_BASE_URL="http://localhost:5000/from/env"):
-            client = SeMcp2(api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        with update_env(STREETEASY_MCP_BASE_URL="http://localhost:5000/from/env"):
+            client = StreeteasyMcp(rapidapi_key=rapidapi_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            SeMcp2(
+            StreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
             ),
-            SeMcp2(
+            StreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_trailing_slash(self, client: SeMcp2) -> None:
+    def test_base_url_trailing_slash(self, client: StreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -636,23 +601,21 @@ class TestSeMcp2:
     @pytest.mark.parametrize(
         "client",
         [
-            SeMcp2(
+            StreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
             ),
-            SeMcp2(
+            StreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_no_trailing_slash(self, client: SeMcp2) -> None:
+    def test_base_url_no_trailing_slash(self, client: StreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -665,23 +628,21 @@ class TestSeMcp2:
     @pytest.mark.parametrize(
         "client",
         [
-            SeMcp2(
+            StreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
             ),
-            SeMcp2(
+            StreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_absolute_request_url(self, client: SeMcp2) -> None:
+    def test_absolute_request_url(self, client: StreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -692,7 +653,7 @@ class TestSeMcp2:
         assert request.url == "https://myapi.com/foo"
 
     def test_copied_client_does_not_close_http(self) -> None:
-        client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
         assert not client.is_closed()
 
         copied = client.copy()
@@ -703,7 +664,7 @@ class TestSeMcp2:
         assert not client.is_closed()
 
     def test_client_context_manager(self) -> None:
-        client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
         with client as c2:
             assert c2 is client
             assert not c2.is_closed()
@@ -724,10 +685,9 @@ class TestSeMcp2:
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            SeMcp2(
+            StreeteasyMcp(
                 base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 max_retries=cast(Any, None),
             )
@@ -739,12 +699,12 @@ class TestSeMcp2:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        strict_client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
 
         with pytest.raises(APIResponseValidationError):
             strict_client.get("/foo", cast_to=Model)
 
-        client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=False)
+        client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=False)
 
         response = client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -772,16 +732,16 @@ class TestSeMcp2:
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     def test_parse_retry_after_header(self, remaining_retries: int, retry_after: str, timeout: float) -> None:
-        client = SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
 
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: SeMcp2) -> None:
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: StreeteasyMcp) -> None:
         respx_mock.get("/rentals/search").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
@@ -789,9 +749,9 @@ class TestSeMcp2:
 
         assert _get_open_connections(self.client) == 0
 
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: SeMcp2) -> None:
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: StreeteasyMcp) -> None:
         respx_mock.get("/rentals/search").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
@@ -799,12 +759,12 @@ class TestSeMcp2:
         assert _get_open_connections(self.client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     def test_retries_taken(
         self,
-        client: SeMcp2,
+        client: StreeteasyMcp,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -830,10 +790,10 @@ class TestSeMcp2:
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_omit_retry_count_header(
-        self, client: SeMcp2, failures_before_success: int, respx_mock: MockRouter
+        self, client: StreeteasyMcp, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -855,10 +815,10 @@ class TestSeMcp2:
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_overwrite_retry_count_header(
-        self, client: SeMcp2, failures_before_success: int, respx_mock: MockRouter
+        self, client: StreeteasyMcp, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = client.with_options(max_retries=4)
 
@@ -929,8 +889,8 @@ class TestSeMcp2:
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
 
-class TestAsyncSeMcp2:
-    client = AsyncSeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+class TestAsyncStreeteasyMcp:
+    client = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
 
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
@@ -958,13 +918,9 @@ class TestAsyncSeMcp2:
         copied = self.client.copy()
         assert id(copied) != id(self.client)
 
-        copied = self.client.copy(api_key="another My API Key")
-        assert copied.api_key == "another My API Key"
-        assert self.client.api_key == "My API Key"
-
-        copied = self.client.copy(api_host="another My API Host")
-        assert copied.api_host == "another My API Host"
-        assert self.client.api_host == "My API Host"
+        copied = self.client.copy(rapidapi_key="another My Rapidapi Key")
+        assert copied.rapidapi_key == "another My Rapidapi Key"
+        assert self.client.rapidapi_key == "My Rapidapi Key"
 
     def test_copy_default_options(self) -> None:
         # options that have a default are overridden correctly
@@ -983,10 +939,9 @@ class TestAsyncSeMcp2:
         assert isinstance(self.client.timeout, httpx.Timeout)
 
     def test_copy_default_headers(self) -> None:
-        client = AsyncSeMcp2(
+        client = AsyncStreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_headers={"X-Foo": "bar"},
         )
@@ -1021,12 +976,8 @@ class TestAsyncSeMcp2:
             client.copy(set_default_headers={}, default_headers={"X-Foo": "Bar"})
 
     def test_copy_default_query(self) -> None:
-        client = AsyncSeMcp2(
-            base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
-            _strict_response_validation=True,
-            default_query={"foo": "bar"},
+        client = AsyncStreeteasyMcp(
+            base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, default_query={"foo": "bar"}
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -1117,10 +1068,10 @@ class TestAsyncSeMcp2:
                         # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
                         #
                         # removing the decorator fixes the leak for reasons we don't understand.
-                        "se_mcp_2/_legacy_response.py",
-                        "se_mcp_2/_response.py",
+                        "streeteasy_mcp/_legacy_response.py",
+                        "streeteasy_mcp/_response.py",
                         # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
-                        "se_mcp_2/_compat.py",
+                        "streeteasy_mcp/_compat.py",
                         # Standard library leaks we don't care about.
                         "/logging/__init__.py",
                     ]
@@ -1151,12 +1102,8 @@ class TestAsyncSeMcp2:
         assert timeout == httpx.Timeout(100.0)
 
     async def test_client_timeout_option(self) -> None:
-        client = AsyncSeMcp2(
-            base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
-            _strict_response_validation=True,
-            timeout=httpx.Timeout(0),
+        client = AsyncStreeteasyMcp(
+            base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1166,12 +1113,8 @@ class TestAsyncSeMcp2:
     async def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
         async with httpx.AsyncClient(timeout=None) as http_client:
-            client = AsyncSeMcp2(
-                base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
-                _strict_response_validation=True,
-                http_client=http_client,
+            client = AsyncStreeteasyMcp(
+                base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1180,12 +1123,8 @@ class TestAsyncSeMcp2:
 
         # no timeout given to the httpx client should not use the httpx default
         async with httpx.AsyncClient() as http_client:
-            client = AsyncSeMcp2(
-                base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
-                _strict_response_validation=True,
-                http_client=http_client,
+            client = AsyncStreeteasyMcp(
+                base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1194,12 +1133,8 @@ class TestAsyncSeMcp2:
 
         # explicitly passing the default timeout currently results in it being ignored
         async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
-            client = AsyncSeMcp2(
-                base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
-                _strict_response_validation=True,
-                http_client=http_client,
+            client = AsyncStreeteasyMcp(
+                base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1209,19 +1144,17 @@ class TestAsyncSeMcp2:
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             with httpx.Client() as http_client:
-                AsyncSeMcp2(
+                AsyncStreeteasyMcp(
                     base_url=base_url,
-                    api_key=api_key,
-                    api_host=api_host,
+                    rapidapi_key=rapidapi_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     def test_default_headers_option(self) -> None:
-        client = AsyncSeMcp2(
+        client = AsyncStreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_headers={"X-Foo": "bar"},
         )
@@ -1229,10 +1162,9 @@ class TestAsyncSeMcp2:
         assert request.headers.get("x-foo") == "bar"
         assert request.headers.get("x-stainless-lang") == "python"
 
-        client2 = AsyncSeMcp2(
+        client2 = AsyncStreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -1244,22 +1176,19 @@ class TestAsyncSeMcp2:
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
     def test_validate_headers(self) -> None:
-        client = AsyncSeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("X-RapidAPI-Key") == api_key
+        assert request.headers.get("X-RapidAPI-Key") == rapidapi_key
 
-        with pytest.raises(SeMcp2Error):
-            with update_env(**{"SE_MCP_2_API_KEY": Omit()}):
-                client2 = AsyncSeMcp2(
-                    base_url=base_url, api_key=None, api_host=api_host, _strict_response_validation=True
-                )
+        with pytest.raises(StreeteasyMcpError):
+            with update_env(**{"RAPIDAPI_KEY": Omit()}):
+                client2 = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=None, _strict_response_validation=True)
             _ = client2
 
     def test_default_query_option(self) -> None:
-        client = AsyncSeMcp2(
+        client = AsyncStreeteasyMcp(
             base_url=base_url,
-            api_key=api_key,
-            api_host=api_host,
+            rapidapi_key=rapidapi_key,
             _strict_response_validation=True,
             default_query={"query_param": "bar"},
         )
@@ -1374,7 +1303,7 @@ class TestAsyncSeMcp2:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
-    def test_multipart_repeating_array(self, async_client: AsyncSeMcp2) -> None:
+    def test_multipart_repeating_array(self, async_client: AsyncStreeteasyMcp) -> None:
         request = async_client._build_request(
             FinalRequestOptions.construct(
                 method="post",
@@ -1461,11 +1390,8 @@ class TestAsyncSeMcp2:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = AsyncSeMcp2(
-            base_url="https://example.com/from_init",
-            api_key=api_key,
-            api_host=api_host,
-            _strict_response_validation=True,
+        client = AsyncStreeteasyMcp(
+            base_url="https://example.com/from_init", rapidapi_key=rapidapi_key, _strict_response_validation=True
         )
         assert client.base_url == "https://example.com/from_init/"
 
@@ -1474,30 +1400,28 @@ class TestAsyncSeMcp2:
         assert client.base_url == "https://example.com/from_setter/"
 
     def test_base_url_env(self) -> None:
-        with update_env(SE_MCP_2_BASE_URL="http://localhost:5000/from/env"):
-            client = AsyncSeMcp2(api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        with update_env(STREETEASY_MCP_BASE_URL="http://localhost:5000/from/env"):
+            client = AsyncStreeteasyMcp(rapidapi_key=rapidapi_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
             ),
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_trailing_slash(self, client: AsyncSeMcp2) -> None:
+    def test_base_url_trailing_slash(self, client: AsyncStreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1510,23 +1434,21 @@ class TestAsyncSeMcp2:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
             ),
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_base_url_no_trailing_slash(self, client: AsyncSeMcp2) -> None:
+    def test_base_url_no_trailing_slash(self, client: AsyncStreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1539,23 +1461,21 @@ class TestAsyncSeMcp2:
     @pytest.mark.parametrize(
         "client",
         [
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
             ),
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url="http://localhost:5000/custom/path/",
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
     )
-    def test_absolute_request_url(self, client: AsyncSeMcp2) -> None:
+    def test_absolute_request_url(self, client: AsyncStreeteasyMcp) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -1566,7 +1486,7 @@ class TestAsyncSeMcp2:
         assert request.url == "https://myapi.com/foo"
 
     async def test_copied_client_does_not_close_http(self) -> None:
-        client = AsyncSeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
         assert not client.is_closed()
 
         copied = client.copy()
@@ -1578,7 +1498,7 @@ class TestAsyncSeMcp2:
         assert not client.is_closed()
 
     async def test_client_context_manager(self) -> None:
-        client = AsyncSeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
         async with client as c2:
             assert c2 is client
             assert not c2.is_closed()
@@ -1600,10 +1520,9 @@ class TestAsyncSeMcp2:
 
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            AsyncSeMcp2(
+            AsyncStreeteasyMcp(
                 base_url=base_url,
-                api_key=api_key,
-                api_host=api_host,
+                rapidapi_key=rapidapi_key,
                 _strict_response_validation=True,
                 max_retries=cast(Any, None),
             )
@@ -1616,14 +1535,14 @@ class TestAsyncSeMcp2:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = AsyncSeMcp2(
-            base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True
+        strict_client = AsyncStreeteasyMcp(
+            base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True
         )
 
         with pytest.raises(APIResponseValidationError):
             await strict_client.get("/foo", cast_to=Model)
 
-        client = AsyncSeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=False)
+        client = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=False)
 
         response = await client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -1652,16 +1571,18 @@ class TestAsyncSeMcp2:
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
     @pytest.mark.asyncio
     async def test_parse_retry_after_header(self, remaining_retries: int, retry_after: str, timeout: float) -> None:
-        client = AsyncSeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=True)
+        client = AsyncStreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=True)
 
         headers = httpx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, async_client: AsyncSeMcp2) -> None:
+    async def test_retrying_timeout_errors_doesnt_leak(
+        self, respx_mock: MockRouter, async_client: AsyncStreeteasyMcp
+    ) -> None:
         respx_mock.get("/rentals/search").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
@@ -1669,9 +1590,11 @@ class TestAsyncSeMcp2:
 
         assert _get_open_connections(self.client) == 0
 
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, async_client: AsyncSeMcp2) -> None:
+    async def test_retrying_status_errors_doesnt_leak(
+        self, respx_mock: MockRouter, async_client: AsyncStreeteasyMcp
+    ) -> None:
         respx_mock.get("/rentals/search").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
@@ -1679,13 +1602,13 @@ class TestAsyncSeMcp2:
         assert _get_open_connections(self.client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
     async def test_retries_taken(
         self,
-        async_client: AsyncSeMcp2,
+        async_client: AsyncStreeteasyMcp,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
         respx_mock: MockRouter,
@@ -1711,11 +1634,11 @@ class TestAsyncSeMcp2:
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
     async def test_omit_retry_count_header(
-        self, async_client: AsyncSeMcp2, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncStreeteasyMcp, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1737,11 +1660,11 @@ class TestAsyncSeMcp2:
         assert len(response.http_request.headers.get_list("x-stainless-retry-count")) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
-    @mock.patch("se_mcp_2._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @mock.patch("streeteasy_mcp._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     @pytest.mark.asyncio
     async def test_overwrite_retry_count_header(
-        self, async_client: AsyncSeMcp2, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncStreeteasyMcp, failures_before_success: int, respx_mock: MockRouter
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
@@ -1773,8 +1696,8 @@ class TestAsyncSeMcp2:
         import nest_asyncio
         import threading
 
-        from se_mcp_2._utils import asyncify
-        from se_mcp_2._base_client import get_platform
+        from streeteasy_mcp._utils import asyncify
+        from streeteasy_mcp._base_client import get_platform
 
         async def test_main() -> None:
             result = await asyncify(get_platform)()

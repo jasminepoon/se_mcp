@@ -4,7 +4,7 @@ from urllib.parse import unquote
 
 import pytest
 
-from se_mcp_2._qs import Querystring, stringify
+from streeteasy_mcp._qs import Querystring, stringify
 
 
 def test_empty() -> None:

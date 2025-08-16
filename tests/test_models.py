@@ -7,9 +7,9 @@ import pytest
 import pydantic
 from pydantic import Field
 
-from se_mcp_2._utils import PropertyInfo
-from se_mcp_2._compat import PYDANTIC_V2, parse_obj, model_dump, model_json
-from se_mcp_2._models import BaseModel, construct_type
+from streeteasy_mcp._utils import PropertyInfo
+from streeteasy_mcp._compat import PYDANTIC_V2, parse_obj, model_dump, model_json
+from streeteasy_mcp._models import BaseModel, construct_type
 
 
 class BasicModel(BaseModel):

@@ -7,9 +7,9 @@ from typing import Any, cast
 
 import pytest
 
-from se_mcp_2 import SeMcp2, AsyncSeMcp2
 from tests.utils import assert_matches_type
-from se_mcp_2.types import RentalSearchResponse
+from streeteasy_mcp import StreeteasyMcp, AsyncStreeteasyMcp
+from streeteasy_mcp.types import RentalSearchResponse
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -19,7 +19,7 @@ class TestRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_search(self, client: SeMcp2) -> None:
+    def test_method_search(self, client: StreeteasyMcp) -> None:
         rental = client.rentals.search(
             areas="all-downtown,all-midtown",
         )
@@ -27,7 +27,7 @@ class TestRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_method_search_with_all_params(self, client: SeMcp2) -> None:
+    def test_method_search_with_all_params(self, client: StreeteasyMcp) -> None:
         rental = client.rentals.search(
             areas="all-downtown,all-midtown",
             amenities="doorman,gym,laundry",
@@ -45,7 +45,7 @@ class TestRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_raw_response_search(self, client: SeMcp2) -> None:
+    def test_raw_response_search(self, client: StreeteasyMcp) -> None:
         response = client.rentals.with_raw_response.search(
             areas="all-downtown,all-midtown",
         )
@@ -57,7 +57,7 @@ class TestRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    def test_streaming_response_search(self, client: SeMcp2) -> None:
+    def test_streaming_response_search(self, client: StreeteasyMcp) -> None:
         with client.rentals.with_streaming_response.search(
             areas="all-downtown,all-midtown",
         ) as response:
@@ -77,7 +77,7 @@ class TestAsyncRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_search(self, async_client: AsyncSeMcp2) -> None:
+    async def test_method_search(self, async_client: AsyncStreeteasyMcp) -> None:
         rental = await async_client.rentals.search(
             areas="all-downtown,all-midtown",
         )
@@ -85,7 +85,7 @@ class TestAsyncRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_method_search_with_all_params(self, async_client: AsyncSeMcp2) -> None:
+    async def test_method_search_with_all_params(self, async_client: AsyncStreeteasyMcp) -> None:
         rental = await async_client.rentals.search(
             areas="all-downtown,all-midtown",
             amenities="doorman,gym,laundry",
@@ -103,7 +103,7 @@ class TestAsyncRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_raw_response_search(self, async_client: AsyncSeMcp2) -> None:
+    async def test_raw_response_search(self, async_client: AsyncStreeteasyMcp) -> None:
         response = await async_client.rentals.with_raw_response.search(
             areas="all-downtown,all-midtown",
         )
@@ -115,7 +115,7 @@ class TestAsyncRentals:
 
     @pytest.mark.skip(reason="Prism tests are disabled")
     @parametrize
-    async def test_streaming_response_search(self, async_client: AsyncSeMcp2) -> None:
+    async def test_streaming_response_search(self, async_client: AsyncStreeteasyMcp) -> None:
         async with async_client.rentals.with_streaming_response.search(
             areas="all-downtown,all-midtown",
         ) as response:

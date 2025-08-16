@@ -10,15 +10,15 @@ import httpx
 import pytest
 from pytest_asyncio import is_async_test
 
-from se_mcp_2 import SeMcp2, AsyncSeMcp2, DefaultAioHttpClient
-from se_mcp_2._utils import is_dict
+from streeteasy_mcp import StreeteasyMcp, AsyncStreeteasyMcp, DefaultAioHttpClient
+from streeteasy_mcp._utils import is_dict
 
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest  # pyright: ignore[reportPrivateImportUsage]
 
 pytest.register_assert_rewrite("tests.utils")
 
-logging.getLogger("se_mcp_2").setLevel(logging.DEBUG)
+logging.getLogger("streeteasy_mcp").setLevel(logging.DEBUG)
 
 
 # automatically add `pytest.mark.asyncio()` to all of our async tests
@@ -45,22 +45,21 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
-api_key = "My API Key"
-api_host = "My API Host"
+rapidapi_key = "My Rapidapi Key"
 
 
 @pytest.fixture(scope="session")
-def client(request: FixtureRequest) -> Iterator[SeMcp2]:
+def client(request: FixtureRequest) -> Iterator[StreeteasyMcp]:
     strict = getattr(request, "param", True)
     if not isinstance(strict, bool):
         raise TypeError(f"Unexpected fixture parameter type {type(strict)}, expected {bool}")
 
-    with SeMcp2(base_url=base_url, api_key=api_key, api_host=api_host, _strict_response_validation=strict) as client:
+    with StreeteasyMcp(base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=strict) as client:
         yield client
 
 
 @pytest.fixture(scope="session")
-async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncSeMcp2]:
+async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncStreeteasyMcp]:
     param = getattr(request, "param", True)
 
     # defaults
@@ -79,11 +78,7 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncSeMcp2]:
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")
 
-    async with AsyncSeMcp2(
-        base_url=base_url,
-        api_key=api_key,
-        api_host=api_host,
-        _strict_response_validation=strict,
-        http_client=http_client,
+    async with AsyncStreeteasyMcp(
+        base_url=base_url, rapidapi_key=rapidapi_key, _strict_response_validation=strict, http_client=http_client
     ) as client:
         yield client

@@ -8,8 +8,8 @@ from typing import Any, TypeVar, Iterator, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin, assert_type
 
-from se_mcp_2._types import Omit, NoneType
-from se_mcp_2._utils import (
+from streeteasy_mcp._types import Omit, NoneType
+from streeteasy_mcp._utils import (
     is_dict,
     is_list,
     is_list_type,
@@ -18,8 +18,8 @@ from se_mcp_2._utils import (
     is_annotated_type,
     is_type_alias_type,
 )
-from se_mcp_2._compat import PYDANTIC_V2, field_outer_type, get_model_fields
-from se_mcp_2._models import BaseModel
+from streeteasy_mcp._compat import PYDANTIC_V2, field_outer_type, get_model_fields
+from streeteasy_mcp._models import BaseModel
 
 BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
 

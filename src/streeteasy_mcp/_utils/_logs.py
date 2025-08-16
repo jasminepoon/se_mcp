@@ -1,12 +1,12 @@
 import os
 import logging
 
-logger: logging.Logger = logging.getLogger("se_mcp_2")
+logger: logging.Logger = logging.getLogger("streeteasy_mcp")
 httpx_logger: logging.Logger = logging.getLogger("httpx")
 
 
 def _basic_config() -> None:
-    # e.g. [2023-10-05 14:12:26 - se_mcp_2._base_client:818 - DEBUG] HTTP Request: POST http://127.0.0.1:4010/foo/bar "200 OK"
+    # e.g. [2023-10-05 14:12:26 - streeteasy_mcp._base_client:818 - DEBUG] HTTP Request: POST http://127.0.0.1:4010/foo/bar "200 OK"
     logging.basicConfig(
         format="[%(asctime)s - %(name)s:%(lineno)d - %(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -14,7 +14,7 @@ def _basic_config() -> None:
 
 
 def setup_logging() -> None:
-    env = os.environ.get("SE_MCP_2_LOG")
+    env = os.environ.get("STREETEASY_MCP_LOG")
     if env == "debug":
         _basic_config()
         logger.setLevel(logging.DEBUG)
