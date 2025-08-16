@@ -1,6 +1,6 @@
 [project]
 name = "streeteasy_mcp"
-version = "0.0.1"
+version = "0.1.0"
 description = "The official Python library for the streeteasy_mcp API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -35,8 +35,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/stainless-sdks/se-mcp-2-python"
-Repository = "https://github.com/stainless-sdks/se-mcp-2-python"
+Homepage = "https://github.com/jasminepoon/se_mcp"
+Repository = "https://github.com/jasminepoon/se_mcp"
 
 [project.optional-dependencies]
 aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.8"]
@@ -125,7 +125,7 @@ path = "README.md"
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 # replace relative links with absolute links
 pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
-replacement = '[\1](https://github.com/stainless-sdks/se-mcp-2-python/tree/main/\g<2>)'
+replacement = '[\1](https://github.com/jasminepoon/se_mcp/tree/main/\g<2>)'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
