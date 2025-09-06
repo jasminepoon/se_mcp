@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 (2025-09-06)
+
+Full Changelog: [v0.2.0...v0.2.1](https://github.com/jasminepoon/se_mcp/compare/v0.2.0...v0.2.1)
+
+### Chores
+
+* **internal:** codegen related update ([ebd2fdc](https://github.com/jasminepoon/se_mcp/commit/ebd2fdc7d8aa51129b1acd66816dda80093e5f3a))
+* **tests:** simplify `get_platform` test ([082b778](https://github.com/jasminepoon/se_mcp/commit/082b778d19df98d7c1a90fe63146168a8d092d92))
+
 ## 0.2.0 (2025-09-04)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/jasminepoon/se_mcp/compare/v0.1.0...v0.2.0)
