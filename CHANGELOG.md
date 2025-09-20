@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.1 (2025-09-20)
+
+Full Changelog: [v0.2.0...v0.2.1](https://github.com/jasminepoon/se_mcp/compare/v0.2.0...v0.2.1)
+
+### Chores
+
+* do not install brew dependencies in ./scripts/bootstrap by default ([f486875](https://github.com/jasminepoon/se_mcp/commit/f4868751dc4a96fd838797703d477f543485cd24))
+* **internal:** codegen related update ([ebd2fdc](https://github.com/jasminepoon/se_mcp/commit/ebd2fdc7d8aa51129b1acd66816dda80093e5f3a))
+* **internal:** update pydantic dependency ([5b5fb07](https://github.com/jasminepoon/se_mcp/commit/5b5fb0795bc05b3669bc48ac4bc4932461996d08))
+* **tests:** simplify `get_platform` test ([082b778](https://github.com/jasminepoon/se_mcp/commit/082b778d19df98d7c1a90fe63146168a8d092d92))
+* **types:** change optional parameter type from NotGiven to Omit ([318e729](https://github.com/jasminepoon/se_mcp/commit/318e729e4047ab85c676ea227418d921019d6e41))
+
 ## 0.2.0 (2025-09-04)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/jasminepoon/se_mcp/compare/v0.1.0...v0.2.0)
