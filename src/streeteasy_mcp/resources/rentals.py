@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 
 from ..types import rental_search_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from .._utils import maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -45,22 +45,22 @@ class RentalsResource(SyncAPIResource):
         self,
         *,
         areas: str,
-        amenities: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        max_beds: int | NotGiven = NOT_GIVEN,
-        max_price: int | NotGiven = NOT_GIVEN,
-        min_baths: float | NotGiven = NOT_GIVEN,
-        min_beds: int | NotGiven = NOT_GIVEN,
-        min_price: int | NotGiven = NOT_GIVEN,
-        no_fee: bool | NotGiven = NOT_GIVEN,
-        offset: int | NotGiven = NOT_GIVEN,
-        types: str | NotGiven = NOT_GIVEN,
+        amenities: str | Omit = omit,
+        limit: int | Omit = omit,
+        max_beds: int | Omit = omit,
+        max_price: int | Omit = omit,
+        min_baths: float | Omit = omit,
+        min_beds: int | Omit = omit,
+        min_price: int | Omit = omit,
+        no_fee: bool | Omit = omit,
+        offset: int | Omit = omit,
+        types: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RentalSearchResponse:
         """
         Find rentals that are currently listed for rent in specific NYC neighborhoods
@@ -152,22 +152,22 @@ class AsyncRentalsResource(AsyncAPIResource):
         self,
         *,
         areas: str,
-        amenities: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        max_beds: int | NotGiven = NOT_GIVEN,
-        max_price: int | NotGiven = NOT_GIVEN,
-        min_baths: float | NotGiven = NOT_GIVEN,
-        min_beds: int | NotGiven = NOT_GIVEN,
-        min_price: int | NotGiven = NOT_GIVEN,
-        no_fee: bool | NotGiven = NOT_GIVEN,
-        offset: int | NotGiven = NOT_GIVEN,
-        types: str | NotGiven = NOT_GIVEN,
+        amenities: str | Omit = omit,
+        limit: int | Omit = omit,
+        max_beds: int | Omit = omit,
+        max_price: int | Omit = omit,
+        min_baths: float | Omit = omit,
+        min_beds: int | Omit = omit,
+        min_price: int | Omit = omit,
+        no_fee: bool | Omit = omit,
+        offset: int | Omit = omit,
+        types: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RentalSearchResponse:
         """
         Find rentals that are currently listed for rent in specific NYC neighborhoods
