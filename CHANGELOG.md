@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.1 (2025-11-04)
+
+Full Changelog: [v0.2.0...v0.2.1](https://github.com/jasminepoon/se_mcp/compare/v0.2.0...v0.2.1)
+
+### Bug Fixes
+
+* **client:** close streams without requiring full consumption ([7f33f66](https://github.com/jasminepoon/se_mcp/commit/7f33f662bc2460b6781a6b9bc1c0c1b57574b42d))
+
+
+### Chores
+
+* bump `httpx-aiohttp` version to 0.1.9 ([eb2efc3](https://github.com/jasminepoon/se_mcp/commit/eb2efc3fd441c43a604997939e68513dad352236))
+* do not install brew dependencies in ./scripts/bootstrap by default ([f486875](https://github.com/jasminepoon/se_mcp/commit/f4868751dc4a96fd838797703d477f543485cd24))
+* **internal/tests:** avoid race condition with implicit client cleanup ([5a2d98d](https://github.com/jasminepoon/se_mcp/commit/5a2d98d71ab141dc3546871cd57dbe23d552905c))
+* **internal:** codegen related update ([ebd2fdc](https://github.com/jasminepoon/se_mcp/commit/ebd2fdc7d8aa51129b1acd66816dda80093e5f3a))
+* **internal:** detect missing future annotations with ruff ([cfee284](https://github.com/jasminepoon/se_mcp/commit/cfee2842e571e2c741c5a5601ca03c7af09007e1))
+* **internal:** grammar fix (it's -&gt; its) ([a63ca8e](https://github.com/jasminepoon/se_mcp/commit/a63ca8ee937dea2d16fe99e8431959e172fad243))
+* **internal:** update pydantic dependency ([5b5fb07](https://github.com/jasminepoon/se_mcp/commit/5b5fb0795bc05b3669bc48ac4bc4932461996d08))
+* **tests:** simplify `get_platform` test ([082b778](https://github.com/jasminepoon/se_mcp/commit/082b778d19df98d7c1a90fe63146168a8d092d92))
+* **types:** change optional parameter type from NotGiven to Omit ([318e729](https://github.com/jasminepoon/se_mcp/commit/318e729e4047ab85c676ea227418d921019d6e41))
+
 ## 0.2.0 (2025-09-04)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/jasminepoon/se_mcp/compare/v0.1.0...v0.2.0)
